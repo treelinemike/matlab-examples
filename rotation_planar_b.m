@@ -1,3 +1,6 @@
+% quatrotate, quatconj, and quat2matrix are custom scripts in github/surgnavtools
+% also included in some MATLAB packages...
+
 % restart
 close all; clear; clc;
 
@@ -15,7 +18,7 @@ q = [cos(theta/2); sin(theta/2)*u];
 a_prime_colvec = R*a_colvec;
 a_prime_rowvec = a_rowvec*R';
 a_prime_colvec_q = quatrotate(q,a_colvec);
-a_prime_rowvec_q = 1; % TODO: FIX...
+a_prime_rowvec_q = a_rowvec*quat2matrix(quatconj(q));
 
 % plot results
 figure;
@@ -53,6 +56,6 @@ hold on; grid on; axis equal;
 xlim([-10 10]);
 ylim([-10 10]);
 plot3([0 a_rowvec(1)],[0 a_rowvec(2)],[0 a_rowvec(3)],'b-','LineWidth',1.);
-plot3([0 a_prime_rowvec(1)],[0 a_prime_rowvec(2)],[0 a_prime_rowvec(3)],'r-','LineWidth',1.);
+plot3([0 a_prime_rowvec_q(1)],[0 a_prime_rowvec_q(2)],[0 a_prime_rowvec_q(3)],'r-','LineWidth',1.);
 legend('Original Vector','Rotated Vector');
 title('\bfRow Vectors - Quaternion');
