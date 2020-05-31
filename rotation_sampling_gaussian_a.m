@@ -5,10 +5,10 @@
 close all; clear; clc;
 
 % options
-sigma_x = (10)*pi/180;
-sigma_y = (5)*pi/180;
+sigma_x = (5)*pi/180;
+sigma_y = (10)*pi/180;
 sigma_z = (1)*pi/180;
-N_samp = 10000;
+N_samp = 20000;
 v_nom = [0 0 1];  % nominal vector that we are going to perturb
 
 % data storage
@@ -17,7 +17,13 @@ v_samp = zeros(3,N_samp);
 % define covariance in tangent space
 % that is, vectors whose elements are [theta_x, theta_y, theta_z]
 COV_tang = diag([(sigma_x)^2, (sigma_y)^2, (sigma_z)^2]);
-samp = mvnrnd(zeros(1,3),COV_tang,N_samp);
+samp = mvnrnd(zeros(1,3),COV_tang,N_samp);  % gaussian sampling
+% samp = 2*(pi/2)*rand(N_samp,3)-(pi/2);      % uniform sampling
+
+% not sure if this is correct: deterministic uniform mapping
+% % unifSpace = -pi/2:0.1:pi/2;
+% % [X,Y,Z] = meshgrid(unifSpace,unifSpace,unifSpace);
+% % samp = [X(:) Y(:) Z(:)];
 
 % convert samples to rotations
 for sampIdx = 1:size(samp,1)
@@ -33,12 +39,13 @@ end
 
 % prepare plot
 figure;
+set(gcf,'Position',[0488 0085 0629 0677]);
 hold on; grid on; axis equal;
 xlabel('\bfx');
 ylabel('\bfy');
 zlabel('\bfz');
 view([45 36]);
-plot3(v_samp(1,:),v_samp(2,:),v_samp(3,:),'.','MarkerSize',5,'Color',[0.8 0 0.8]);
+plot3(v_samp(1,:),v_samp(2,:),v_samp(3,:),'.','MarkerSize',2,'Color',[0.8 0 0.8]);
 
 % draw references
 theta = 0:0.01:2*pi;
@@ -50,5 +57,5 @@ plot3(circxz(1,:),circxz(2,:),circxz(3,:),'-','LineWidth',1.6,'Color',[0.8 0 0])
 plot3(circyz(1,:),circyz(2,:),circyz(3,:),'-','LineWidth',1.6,'Color',[0.8 0 0]);
 plot3(0,0,0,'.','MarkerSize',25,'Color',[0 0 0.8]);
 plot3([0 v_nom(1)],[0 v_nom(2)],[0 v_nom(3)],'-','LineWidth',1.6,'Color',[0 0 0.8]);
-title('\bfGaussian SO(3) Samples Applied to Vector in R^3');
+title('\bfSO(3) Samples Applied to Vector in R^3');
 drawnow;
