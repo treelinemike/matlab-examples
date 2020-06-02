@@ -13,7 +13,7 @@ close all; clear; clc;
 rng('default');
 
 % options
-N_samp = 1000;
+N_samp = 2000;
 v_nom = [1 0 0];  % nominal vector that we are going to perturb
 % ts_mean = [0 -pi/2 0]';
 ts_mean = [ 0   -1.5459   1.5459]'; % tangent space coefficients of mean perturbation rotation
@@ -41,7 +41,7 @@ samp_angax = zeros(4,N_samp);
 
 % prepare plot
 figure;
-set(gcf,'Position',[0378 0393 1225 0460]);
+set(gcf,'Position',[1.626000e+02 2.266000e+02 1.225600e+03 0468]);
 subplot(1,2,1);
 hold on; grid on; axis equal;
 title('\bfSO(3) Samples Applied to Vector in R^3');
