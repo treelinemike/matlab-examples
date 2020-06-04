@@ -1,9 +1,11 @@
 
-% Test sampling rotations from a Gaussian
+% Test sampling rotations from a Uniform distribution on the 3-ball
+% (interior of S^2)
 % following: http://ethaneade.com/lie_groups.pdf
+% and also: http://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
 %
-% Essentially sample from a multivariate gaussian in so(3) which is the
-% tangent space of SO(3) about the identity eye(3)...
+% Essentially take three samples from U(-1 1); reject if not in the 3-ball, and multiply by the desired max rotation angle
+% The results is an element of the tangent space of SO(3) [ so(3) ] about the identity eye(3)...
 % These 3-vectors v will ALWAYS* be valid rotations when transformed via
 % exponential map: R = expm([0 -v(3) v(2); v(3) 0 -v(1); -v(2) v(1) 0]);
 % * may need to prove this?
@@ -15,29 +17,45 @@ rng('default');
 % options
 N_samp = 4000;
 v_nom = [1 0 0];  % nominal vector that we are going to perturb
-% ts_mean = [0 0 0]';
+% ts_mean = [ 0   0   0 ]';
 ts_mean = [ 0   -1.5459   1.5459]'; % tangent space coefficients of mean perturbation rotation
                                     % note: NOT how much to rotate about
                                     % each axis; rather: angle*[u1 u2 u3]'
-sigma_x = (5)*pi/180;  % affects x component of rotation axis unit vector
-sigma_y = (5)*pi/180;  % affects y component of rotation axis unit vector
-sigma_z = (5)*pi/180;  % affects z component of rotation axis unit vector
-
-% scale length of rotation axes for display purposes only
+theta_max = 15*pi/180;
 k_tang = 0.3;
+
+% get mean rotation
+q_mean = tang2quat(ts_mean);
 
 % data storage
 v_rot = zeros(3,N_samp);
-samp_angax = zeros(4,N_samp);
 samp = zeros(N_samp,3);
+samp_angax = zeros(4,N_samp);
 
-% mean / DC rotation (without perturbation)
-q_mean = tang2quat(ts_mean);
+% samplue using rejection method
+N_accepted = 0;
+loopCount = 0;
 
-% define covariance in tangent space
-% that is, vectors whose elements are [theta_x, theta_y, theta_z]
-COV_tang = diag([(sigma_x)^2, (sigma_y)^2, (sigma_z)^2]);
-p_samp = mvnrnd([0 0 0],COV_tang,N_samp);  % gaussian sampling for perturbation only
+while( N_accepted < N_samp )
+    U_samp = (2*rand(1,3)-1);
+    % Note: Typically we would need to draw another random sample here,
+    % this time from u(0,1) and compare that value to the ratio of the
+    % f(x)/(c*g(x)) where f(x) is the density we want to sample from and
+    % c*g(x) is the envelope function. Here we don't need the random draw
+    % because f(x)/(c*g(x)) = 1 for all x inside the unit sphere and 0
+    % outside. Thus, samples are always accepted if their norm is less than
+    % 1.0.
+    if( norm(U_samp) <= 1 )
+        N_accepted = N_accepted + 1;
+        samp(N_accepted,:) =  quat2tang(quatmult(q_mean, tang2quat(theta_max*U_samp) )) ;
+    end
+    loopCount = loopCount + 1;
+end
+fprintf('Acceptance ratio: %5.2f%%\n',100*N_samp/loopCount);
+
+
+
+
 
 % prepare plot
 figure;
@@ -53,23 +71,18 @@ view([45 36]);
 % convert samples to rotations
 for sampIdx = 1:size(samp,1)
 
-    % convert sample from so(2) coefficients to quaternion 
-    q_samp = tang2quat(p_samp(sampIdx,:));
-    
-    % combine perturbation with base DC rotation
-    q_total = quatmult(q_mean,q_samp);
-    t_total = quat2tang(q_total);
-    samp(sampIdx,:) = t_total;
-    
-    % apply net rotation to nominal vector
-    v_rot(:,sampIdx) = quatrotate(q_total,v_nom);
-    
-    % convert to angle/axis and plot AXIS OF ROTATION for this sample
-    angax = quat2angax(q_total);
-    samp_angax(:,sampIdx) = angax;
-    
-    %    plot3([0 angax(2)],[0 angax(3)],[0 angax(4)],'-','LineWidth',0.1,'Color',[0.8 0 0.8]);
-    plot3(k_tang*[0 t_total(1)],k_tang*[0 t_total(2)],k_tang*[0 t_total(3)],'-','LineWidth',0.1,'Color',[0.8 0 0.8]);
+   % convert sample from so(2) coefficients to quaternion 
+   q_samp = tang2quat(samp(sampIdx,:)');
+   
+   % apply quaternion rotation to nominal vector
+   v_rot(:,sampIdx) = quatrotate(q_samp,v_nom);
+   
+   % convert to angle/axis and plot AXIS OF ROTATION for this sample
+   angax = quat2angax(q_samp);
+   tang = quat2tang(q_samp);
+   samp_angax(:,sampIdx) = angax;
+%    plot3([0 angax(2)],[0 angax(3)],[0 angax(4)],'-','LineWidth',0.1,'Color',[0.8 0 0.8]);
+   plot3(k_tang*[0 tang(1)],k_tang*[0 tang(2)],k_tang*[0 tang(3)],'-','LineWidth',0.1,'Color',[0.8 0 0.8]);
    
 end
 
