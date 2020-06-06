@@ -22,6 +22,7 @@ ts_mean = [ 0   -1.5459   1.5459]'; % tangent space coefficients of mean perturb
 sigma_x = (5)*pi/180;  % affects x component of rotation axis unit vector
 sigma_y = (5)*pi/180;  % affects y component of rotation axis unit vector
 sigma_z = (5)*pi/180;  % affects z component of rotation axis unit vector
+sigma = [sigma_x, sigma_y, sigma_z];
 
 % scale length of rotation axes for display purposes only
 k_tang = 0.3;
@@ -29,15 +30,15 @@ k_tang = 0.3;
 % data storage
 v_rot = zeros(3,N_samp);
 samp_angax = zeros(4,N_samp);
-samp = zeros(N_samp,3);
+samp = randRotGauss_t(ts_mean,sigma,N_samp);
 
-% mean / DC rotation (without perturbation)
-q_mean = tang2quat(ts_mean);
-
-% define covariance in tangent space
-% that is, vectors whose elements are [theta_x, theta_y, theta_z]
-COV_tang = diag([(sigma_x)^2, (sigma_y)^2, (sigma_z)^2]);
-p_samp = mvnrnd([0 0 0],COV_tang,N_samp);  % gaussian sampling for perturbation only
+% % mean / DC rotation (without perturbation)
+% q_mean = tang2quat(ts_mean);
+% 
+% % define covariance in tangent space
+% % that is, vectors whose elements are [theta_x, theta_y, theta_z]
+% COV_tang = diag([(sigma_x)^2, (sigma_y)^2, (sigma_z)^2]);
+% p_samp = mvnrnd([0 0 0],COV_tang,N_samp);  % gaussian sampling for perturbation only
 
 % prepare plot
 figure;
@@ -50,17 +51,13 @@ ylabel('\bfy');
 zlabel('\bfz');
 view([45 36]);
 
-% convert samples to rotations
-for sampIdx = 1:size(samp,1)
+% % convert samples to rotations
+for sampIdx = 1:N_samp
 
-    % convert sample from so(2) coefficients to quaternion 
-    q_samp = tang2quat(p_samp(sampIdx,:));
-    
-    % combine perturbation with base DC rotation
-    q_total = quatmult(q_mean,q_samp);
-    t_total = quat2tang(q_total);
-    samp(sampIdx,:) = t_total;
-    
+    % extract net rotation and convert to quaternion
+    t_total = samp(:,sampIdx);
+    q_total = tang2quat(t_total);
+
     % apply net rotation to nominal vector
     v_rot(:,sampIdx) = quatrotate(q_total,v_nom);
     
@@ -91,7 +88,7 @@ plot3([0 v_nom(1)],[0 v_nom(2)],[0 v_nom(3)],'--','LineWidth',1.6,'Color',[0 0 0
 
 % find mean of samples in tangent space
 % then compute and apply corresponding rotation
-samp_mean = mean(samp,1)';
+samp_mean = mean(samp,2);
 samp_mean_vec = quatrotate(tang2quat(samp_mean),v_nom);
 plot3([0 samp_mean_vec(1)],[0 samp_mean_vec(2)],[0 samp_mean_vec(3)],'-','LineWidth',1.6,'Color',[0 0 0.8]);
 plot3(samp_mean_vec(1),samp_mean_vec(2),samp_mean_vec(3),'.','MarkerSize',20,'Color',[0 0 0]);
@@ -113,7 +110,7 @@ xlabel('\bfx');
 ylabel('\bfy');
 zlabel('\bfz');
 view([45 36]);
-plot3(samp(:,1),samp(:,2),samp(:,3),'.','MarkerSize',4,'Color',[0.8 0 0.8]);
+plot3(samp(1,:),samp(2,:),samp(3,:),'.','MarkerSize',4,'Color',[0.8 0 0.8]);
 plot3(ts_mean(1),ts_mean(2),ts_mean(3),'.','MarkerSize',20,'Color',[0 0.8 0]);
 plot3(samp_mean(1),samp_mean(2),samp_mean(3),'.','MarkerSize',20,'Color',[0 0 0]);
 legend('Samples','Desired Mean','Sample Mean','Location','NorthEast');
