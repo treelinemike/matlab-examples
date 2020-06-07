@@ -1,5 +1,4 @@
-
-% Test sampling rotations from a Gaussian
+% Test sampling rotations from a Uniform or Gaussian distribution
 % following: http://ethaneade.com/lie_groups.pdf
 %
 % Essentially sample from a multivariate gaussian in so(3) which is the
@@ -12,33 +11,43 @@
 close all; clear; clc;
 rng('default');
 
-% options
+% general options
+SAMPLE_TYPE = 'gaussian';   % 'uniform' or 'gaussian'
 N_samp = 4000;
-v_nom = [1 0 0];  % nominal vector that we are going to perturb
+v_nom = [1 0 0]';  % nominal vector that we are going to perturb
+k_tang = 0.3; % scale length of rotation axes for display purposes only
 % ts_mean = [0 0 0]';
 ts_mean = [ 0   -1.5459   1.5459]'; % tangent space coefficients of mean perturbation rotation
                                     % note: NOT how much to rotate about
                                     % each axis; rather: angle*[u1 u2 u3]'
+
+                                    
+                                    
+% UNIFORM OPTIONS
+theta_max = 15*pi/180;
+
+% GAUSSIAN OPTIONS
 sigma_x = (5)*pi/180;  % affects x component of rotation axis unit vector
 sigma_y = (5)*pi/180;  % affects y component of rotation axis unit vector
 sigma_z = (5)*pi/180;  % affects z component of rotation axis unit vector
-sigma = [sigma_x, sigma_y, sigma_z];
-
-% scale length of rotation axes for display purposes only
-k_tang = 0.3;
 
 % data storage
-v_rot = zeros(3,N_samp);
 samp_angax = zeros(4,N_samp);
-samp = randRotGauss_t(ts_mean,sigma,N_samp);
 
-% % mean / DC rotation (without perturbation)
-% q_mean = tang2quat(ts_mean);
-% 
-% % define covariance in tangent space
-% % that is, vectors whose elements are [theta_x, theta_y, theta_z]
-% COV_tang = diag([(sigma_x)^2, (sigma_y)^2, (sigma_z)^2]);
-% p_samp = mvnrnd([0 0 0],COV_tang,N_samp);  % gaussian sampling for perturbation only
+% assemble std. dev. vector
+sigma = [sigma_x, sigma_y, sigma_z];
+
+% samples in tangent space
+switch SAMPLE_TYPE
+    case 'uniform'
+        samp = randRotUnif_t(ts_mean,theta_max,N_samp);
+    case 'gaussian'
+        samp = randRotGauss_t(ts_mean,sigma,N_samp);
+    otherwise
+        error('Unknown sampling type. Choose ''uniform'' or ''gaussian''');
+end
+% rotated vectors
+v_rot = rot1vec_t(v_nom,samp);
 
 % prepare plot
 figure;
@@ -51,15 +60,13 @@ ylabel('\bfy');
 zlabel('\bfz');
 view([45 36]);
 
-% % convert samples to rotations
+% display axes of rotation, with magnitudes scaled to represent rotation
+% angles
 for sampIdx = 1:N_samp
 
     % extract net rotation and convert to quaternion
     t_total = samp(:,sampIdx);
     q_total = tang2quat(t_total);
-
-    % apply net rotation to nominal vector
-    v_rot(:,sampIdx) = quatrotate(q_total,v_nom);
     
     % convert to angle/axis and plot AXIS OF ROTATION for this sample
     angax = quat2angax(q_total);
