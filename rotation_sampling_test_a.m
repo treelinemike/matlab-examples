@@ -12,7 +12,8 @@ close all; clear; clc;
 rng('default');
 
 % general options
-SAMPLE_TYPE = 'gaussian';   % 'uniform' or 'gaussian'
+SAMPLE_TYPE = 'uniform';   % 'uniform' or 'gaussian'
+% SAMPLE_TYPE = 'gaussian';
 N_samp = 4000;
 v_nom = [1 0 0]';  % nominal vector that we are going to perturb
 k_tang = 0.3; % scale length of rotation axes for display purposes only
