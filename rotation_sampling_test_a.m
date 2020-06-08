@@ -12,9 +12,10 @@ close all; clear; clc;
 rng('default');
 
 % general options
-SAMPLE_TYPE = 'uniform';   % 'uniform' or 'gaussian'
+% SAMPLE_TYPE = 'uniform';   % 'uniform', 'uniform_angle', or 'gaussian'
+SAMPLE_TYPE = 'uniform_angle';
 % SAMPLE_TYPE = 'gaussian';
-N_samp = 4000;
+N_samp = 10000;
 v_nom = [1 0 0]';  % nominal vector that we are going to perturb
 k_tang = 0.3; % scale length of rotation axes for display purposes only
 % ts_mean = [0 0 0]';
@@ -41,9 +42,11 @@ sigma = [sigma_x, sigma_y, sigma_z];
 % samples in tangent space
 switch SAMPLE_TYPE
     case 'uniform'
-        samp = randRotUnif_t(ts_mean,theta_max,N_samp);
+        [samp,delta_theta] = randRotUnif_t(ts_mean,theta_max,N_samp);
+    case 'uniform_angle'
+        [samp,delta_theta] = randRotUnifAng_t(ts_mean,theta_max,N_samp);    
     case 'gaussian'
-        samp = randRotGauss_t(ts_mean,sigma,N_samp);
+        [samp,delta_theta] = randRotGauss_t(ts_mean,sigma,N_samp);
     otherwise
         error('Unknown sampling type. Choose ''uniform'' or ''gaussian''');
 end
@@ -126,3 +129,19 @@ legend('Samples','Desired Mean','Sample Mean','Location','NorthEast');
 % display results
 fprintf('    Desired >> Theta: %+8.4f rad; Axis: [%+8.4f,%+8.4f,%+8.4f ]\n',tang2angax(ts_mean));
 fprintf('Sample Mean >> Theta: %+8.4f rad; Axis: [%+8.4f,%+8.4f,%+8.4f ]\n',tang2angax(samp_mean));
+fprintf('Max perturbation angle: %6.2f rad = %6.2f°\n',max(delta_theta)*[1 180/pi]);
+
+% Show distribution of angles
+% NOTE: This will NOT be uniform for a uniform distribution
+% because we sample in tangent space, and the probability of samping a
+% region is proportional to the volume of that region. In the sampled
+% sphere space there is more volume associated with larger angles. 
+% See excel file for theoretical comparison, doesn't quite line up
+% (histogram goes with ang^2, theory with ang^3.
+% Consider interplay between inclination of axis and angle of rotation?
+figure;
+hold on; grid on;
+hist(delta_theta*180/pi);
+title('\bfDistribution of Sampled Angles');
+xlabel('\bfAngle [deg]');
+ylabel('\bfCount');
