@@ -15,7 +15,7 @@ rng('default');
 % SAMPLE_TYPE = 'uniform';   % 'uniform', 'uniform_angle', or 'gaussian'
 SAMPLE_TYPE = 'uniform_angle';
 % SAMPLE_TYPE = 'gaussian';
-N_samp = 10000;
+N_samp = 2000;
 v_nom = [1 0 0]';  % nominal vector that we are going to perturb
 k_tang = 0.3; % scale length of rotation axes for display purposes only
 % ts_mean = [0 0 0]';
