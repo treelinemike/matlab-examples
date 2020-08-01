@@ -35,7 +35,12 @@ cov2 = (1/(n-1))*Ac'*Ac
 % C = centering matrix, essentially removes mean
 A = [x' y'];
 C = diag((1-1/n)*ones(1,n)) + (-1/n)*ones(n,n).*(~diag(ones(1,n)));
-cov3 = (1/(n-1))*A'*C*A
+cov3a = (1/(n-1))*A'*C*A
+
+% but! this is a little obtuse... easier to show as this:
+A = [x' y'];
+CC = eye(n)-(1/n)*ones(n);
+cov3b = (1/(n-1))*A'*(CC')*CC*A
 
 %% built-in MATLAB function
 cov4 = cov(x,y)  % or equivalently, A = [x' y']; cov4 = cov(A)
