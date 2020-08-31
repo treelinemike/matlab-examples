@@ -43,10 +43,10 @@ contour(X,Y,U,200);
 axis equal;
 plot([0 1.5],x0(2)*ones(1,2),'m-','LineWidth',1.6);
 ph = plot(x0(1),x0(2),'.','MarkerSize',30,'Color',[0 0.8 0]);
-ph(end+1) = plot(x_opt(1),x_opt(2),'.','MarkerSize',30,'Color',[0.8 0 0]);
+ph(end+1) = plot(x_opt(1),x_opt(2),'.','MarkerSize',60,'Color',[0.8 0 0]);
 ph(end+1) = plot(x_opt_unc(1),x_opt_unc(2),'.','MarkerSize',30,'Color',[0 0.8 0.8]);
 ph(end+1) = plot(x_opt_con(1),x_opt_con(2),'.','MarkerSize',30,'Color',[0.8 0 0.8]);
-legend(ph,{'Start','Fminsearch','Unconstrained','Constrained'});
+legend(ph,{'Start','fminsearch','fminunc','fmincon'});
 title('\bf2D Gravitation Energy Minimization');
 
 % objective function for optimization
