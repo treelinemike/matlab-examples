@@ -7,7 +7,7 @@ close all; clear; clc;
 rng default;
 
 % options
-grad_type = 'stochastic';   %'descent','coord','stochastic'
+grad_type = 'descent';   %'descent','coord','stochastic'
 numobs = 20;
 mu = [2,3];
 varx = 1;
@@ -155,7 +155,68 @@ ylabel('\bfSlope');
 set(gca,'XDir','reverse');
 axis equal;
 
-% plot cost function vs. iteration
+
+%%
+% show example of constrained optimization
+
+n_pts = 50;
+Jc = zeros(1,n_pts);
+xc = [ x0(1)*ones(1,n_pts);linspace(mLim(1),mLim(2),n_pts)];
+yc = repmat(obs_y,1,n_pts);
+for cPointIdx = 1:n_pts
+    Jc(cPointIdx) = (H*xc(:,cPointIdx)-obs_y)'*(H*xc(:,cPointIdx)-obs_y);
+end
+[~,JcMinIdx] = min(Jc);
+
+figure;
+set(gcf,'Position',[0481 6.340000e+01 5.032000e+02 7.096000e+02]);
+t = tiledlayout(2,1);
+t.Padding = 'none';  % 'normal', 'compact', or 'none'
+t.TileSpacing = 'none';  % 'normal', 'compact', or 'none'
+nexttile(1);
+hold on; grid on;
+sh = surf(m,b,J);
+contour(m,b,J,40);
+quiver(m,b,Jm,Jb);
+ph2 = plot3(xc(2,:),xc(1,:),Jc,'-','LineWidth',3,'Color',[0.8 0 0]);
+ph2(end+1) = plot3(x0(2),x0(1),J0,'.','MarkerSize',25,'Color',[0 0.9 0]);
+plot3(x0(2),x0(1),J0,'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+ph2(end+1) = plot3(xLS(2),xLS(1),JLS,'.','MarkerSize',25,'Color',[0.8 0.0 0.8]);
+plot3(xLS(2),xLS(1),JLS,'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+ph2(end+1) = plot3(xc(2,JcMinIdx),xc(1,JcMinIdx),Jc(JcMinIdx),'.','MarkerSize',25,'Color',[0.8 0.0 0.0]);
+plot3(xc(2,JcMinIdx),xc(1,JcMinIdx),Jc(JcMinIdx),'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+
+xlabel('\bfSlope');
+ylabel('\bfIntercept');
+zlabel('\bfCost');
+legend(ph2,{'Constrained Cost','Initial Condition','Least Squares Solution','Constrained Minimum'});
+view([-127,36]);
+set(sh,'FaceAlpha',0.6);
+set(gca,'DataAspectRatio',[1 1 1500])
+
+% show same data with contour plot only
+nexttile(2);
+hold on; grid on;
+contour(b,m,J',40);
+quiver(b,m,Jb',Jm');
+plot(xc(1,:),xc(2,:),'-','LineWidth',3,'Color',[0.8 0 0]);
+plot(x0(1),x0(2),'.','MarkerSize',25,'Color',[0 0.9 0]);
+plot(x0(1),x0(2),'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+plot(xLS(1),xLS(2),'.','MarkerSize',25,'Color',[0.8 0.0 0.8]);
+plot(xLS(1),xLS(2),'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+plot3(xc(1,JcMinIdx),xc(2,JcMinIdx),Jc(JcMinIdx),'.','MarkerSize',25,'Color',[0.8 0.0 0.0]);
+plot3(xc(1,JcMinIdx),xc(2,JcMinIdx),Jc(JcMinIdx),'o','MarkerSize',10,'Color',[0 0 0],'LineWidth',2);
+
+
+xlabel('\bfIntercept');
+ylabel('\bfSlope');
+set(gca,'XDir','reverse');
+axis equal;
+
+
+
+
+%% plot cost function vs. iteration
 figure;
 set(gcf,'Position',[ 610   428   710   335]);
 loglog((1:size(data,1))',data(:,3),'r-','LineWidth',1.6);
