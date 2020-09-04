@@ -1,12 +1,13 @@
-% Based on ENGS 199-01 HW #4 - Problem #1
-% Generate observed ata 
+% Based on Fall 2016 ENGS 199-01 (Data Assimilation Methods, Visiting Prof. Ryan McGranahan) HW #4 - Problem #1
+% Generate a point cloud of data, then fit a line to it with linear least
+% squares. Evaluate solution analytically and with gradient descent.
 
 % restart
 close all; clear; clc;
+rng default;
 
+% options
 grad_type = 'stochastic';   %'descent','coord','stochastic'
-
-% parameters
 numobs = 20;
 mu = [2,3];
 varx = 1;
@@ -23,7 +24,6 @@ covxy_max = sqrt(varx*vary);   % corresponds to corr(x,y) = 1; limit here is sqr
 % covxy = covxy_max;
 covxy = 1.5;
 sigma = [varx,covxy;covxy,vary];
-rng default;
 r = mvnrnd(mu,sigma,numobs);
 obs_x = r(:,1); obs_y = r(:,2);
 
@@ -167,22 +167,16 @@ ylabel('\bfCost Function Value');
 costTraj = [(1:size(data,1))' data(:,3)];
 save(['costTraj' grad_type '.mat'],'costTraj');
 
-
-%% plot cost function vs. iteration
-figure;
-set(gcf,'Position',[0610 4.722000e+02 4.718000e+02 2.908000e+02]);
-
-load('costTrajdescent.mat');
-ph = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.8 0.0 0.0]);
-hold on; grid on;
-
-load('costTrajcoordinate.mat');
-ph(end+1) = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.0 0.8 0.0]);
-
-load('costTrajstochastic.mat');
-ph(end+1) = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.0 0.0 0.8]);
-
-xlabel('\bfIteration');
-ylabel('\bfCost');
-legend(ph,{'Gradient','Coordinate','Stochastic'});
-
+% %% plot cost function vs. iteration
+% figure;
+% set(gcf,'Position',[0610 4.722000e+02 4.718000e+02 2.908000e+02]);
+% load('costTrajdescent.mat');
+% ph = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.8 0.0 0.0]);
+% hold on; grid on;
+% load('costTrajcoordinate.mat');
+% ph(end+1) = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.0 0.8 0.0]);
+% load('costTrajstochastic.mat');
+% ph(end+1) = loglog(costTraj(:,1),costTraj(:,2),'-','LineWidth',1.6,'Color',[0.0 0.0 0.8]);
+% xlabel('\bfIteration');
+% ylabel('\bfCost');
+% legend(ph,{'Gradient','Coordinate','Stochastic'});
