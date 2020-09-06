@@ -46,10 +46,10 @@ xlabel('\bfIteration');
 ylabel('\bfCost');
 close(fh0);
 linkaxes([ax1,ax2],'y');
+
 % emperical evaluation of cost function
 % x is the variable for which we are trying to compute an optimal value
 % params are likely observed data
-function err = computeCost(params,x)
-    err = params(1)*x^2+params(2)*x+params(3);
-    fprintf('evaluating at x=%+10.5f; cost = %+10.5f\n',x,err);
+function cost = computeCost(params,x)
+    cost = params(1)*x^2+params(2)*x+params(3);
 end
