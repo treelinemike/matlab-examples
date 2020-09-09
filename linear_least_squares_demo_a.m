@@ -1,3 +1,6 @@
+% demonstrate optimization approaches to least squares fitting of a very
+% simple dataset
+
 % restart
 close all; clear; clc;
 
@@ -29,6 +32,7 @@ resid_analytic = f-A*x_opt_analytic;
 SSE_analytic = resid_analytic'*resid_analytic;
 rsq_analytic = (SST-SSE_analytic)/SST
 
+%% SIMULATE FITTING DIFFERENT LINES, PASSING THE REGRESSION LINE THROUGH MEAN OF DATA
 
 % initialize plot
 figure;
@@ -38,7 +42,6 @@ axis equal;
 xlim([0 10]);
 ylim([0 10]);
 
-%% now run a simulation for demonstration
 % keep track of errors
 min_sse = SST;
 min_rsq = 0;   % R^2 at mean model = (SST-SST)/SST = 0
@@ -135,7 +138,9 @@ end
 aa = 1/( (length(t))*sum(t.^2)-(sum(t))^2 ) * [length(t) -sum(t);-sum(t) sum(t.^2) ];
 (1/length(t))*[sum(t) length(t)]*aa*[sum(t.*f); sum(f)];
 
-%% compute actual cost function
+%% RUN NUMERICAL OPTIMIZATION AND DISPLAY TRAJECTORY FROM OPTIMIZERS
+
+% compute cost function explicitly on a meshed grid
 x1_vals = -0.5:0.1:2;
 x2_vals = -5:0.2:5;
 [X1,X2] = meshgrid(x1_vals,x2_vals);
@@ -145,6 +150,7 @@ for elIdx = 1:numel(X1)
    J(elIdx) = calcSSE(x,A,f);
 end
 
+% display cost function surface and analytical solution
 figure;
 set(gcf,'Position',[3.674000e+02 0217 1.023200e+03 4.608000e+02]);
 subplot(2,2,[1,3]);
@@ -158,29 +164,25 @@ zlabel('\bfCost');
 set(sh,'FaceAlpha',0.6);
 set(gca,'DataAspectRatio',[1 4 400])
 
-%% now try optimization
-
-
-
-% wrap error function to pass parameters/data
+% wrap error function to pass parameters/data to optimizers
 optfunc = @(x)calcSSE(x,A,f);
 
-% optimization over both slope and intercept parameters
+% unconstrained optimization over both slope and intercept 
+% we actually don't use these results, use fmincon instead
 [x_opt_fminsearch,sse_opt_fminsearch] = fminsearch(optfunc,[0 0]');
 
-
-% using fmincon with equality constraint forcing regression
-% through mean of data
+%% constrained optmization
+% use fmincon with equality constraint forcing regression through mean of data
 % note: x0 = [0 0]' does NOT satisfy constraints so fmincon adjusts it...
 % or we can start with, say, the constraint minimum norm solution
+
+% constraint
 Aeq = [mean(t) 1];
 beq = mean(f);
-% x0_con = Aeq'*inv(Aeq*Aeq')*beq;
+% x0_con = Aeq'*inv(Aeq*Aeq')*beq;  % minimum norm point on constraint
+
+% compute line on constraint and cost along that line
 x0_con = [0 0]';
-% opts = optimoptions('fmincon','Display','iter-detailed','PlotFcn','optimplotfval','OutputFcn',@myoutfun);
-
-
-
 xc2_vals = (beq-x1_vals*Aeq(1))/Aeq(2);
 xc = [x1_vals; xc2_vals];
 Jc = zeros(1,size(xc,2));
@@ -189,18 +191,20 @@ for cIdx = 1:size(xc,2)
 end
 ph2(5) = plot3(xc(1,:),xc(2,:),Jc,'-','LineWidth',4,'Color',[0.8 0 0.8]);
 
+% run constrained optimization and store results
 opts = optimoptions('fmincon','Display','iter','OutputFcn',@myoutfun);
 [x_opt_fmincon,sse_opt_fmincon,~,output] = fmincon(optfunc,x0_con,[],[],Aeq,beq,[],[],[],opts);
 allData_con = myoutfun([],[],[],1);
 allData_con(1,:) = [];
 allData_con(end,:) = [];
-disp(allData_con);
+
+% plot results of constrained optimization
 ph2(4) = plot3(allData_con(:,1),allData_con(:,2),allData_con(:,3),'.-','LineWidth',3,'Color',[0 0.8 0],'MarkerSize',30);
 xlim([ min(x1_vals), max(x1_vals)]);
 ylim([ min(x2_vals), max(x2_vals)]);
 
-% using fminunc
-% opts = optimoptions('fminunc','Display','iter','PlotFcn','optimplotfval');
+%% unconstrained optimization 
+% use fminunc
 opts = optimoptions('fminunc','Display','iter','OutputFcn',@myoutfun);
 [x_opt_fminunc,sse_opt_fminunc] = fminunc(optfunc,[0 0]',opts);
 allData_unc = myoutfun([],[],[],1);
@@ -212,7 +216,7 @@ ph2(1) = plot3(0,0,calcSSE([0;0],A,f),'.','MarkerSize',50,'Color',[0 0.5 0]);
 lh = legend(ph2,'Start','Truth','fminunc','fmincon','Constrained Cost');
 set(lh,'Position',[0.3465 0.6915 0.0873 0.1866]);
 
-
+%% finish plot
 % plot constrained view
 subplot(2,2,2);
 hold on; grid on;
@@ -226,6 +230,7 @@ plot(norm(x_opt_analytic-xc(:,1)),SSE_analytic,'.','MarkerSize',50,'Color',[0.8 
 ph3(1) = plot(optPosAlongConstraint,allData_con(:,3),'.-','LineWidth',2,'MarkerSize',30,'Color',[0 0.8 0]);
 xlim([0,max(posAlongConstraint)]);
 legend(ph3,'fmincon','Constrained Cost','Location','NorthWest');
+
 % plot cost vs. iterations
 subplot(2,2,4);
 semilogy(1:size(allData_unc,1),allData_unc(:,3),'.-','MarkerSize',20,'LineWidth',1.6,'Color',[0.8 0 0]);
@@ -249,6 +254,8 @@ function stop = myoutfun(x,optimValues,state,getData)
     end
 end
 
+% compute sum of squaured error for a given estimate of slope (x(1)) and
+% intercept x(2) parameters
 function sse = calcSSE(x,A,b)
     sse = (b-A*x)'*(b-A*x);
 end
