@@ -1,12 +1,13 @@
 % restart
 close all; clear; clc;
+rng('default');
 
 % options
 doMakeVideo = 1;
 outputFilename = 'simpleEIT.mp4';
 
 % define problem
-R_true = [100, 120, 112, 87, 132, 97, 101, 99, 114, 31, 94, 103, 87, 111, 102,99]';
+R_true = [100, 120, 112, 87, 132, 97, 101, 99, 114, 31, 94, 103, 87, 111, 102, 99]';
 
 A = zeros(9,16);
 A( 1,[ 1, 2, 5, 6]) = 1;
@@ -20,16 +21,9 @@ A( 8,[10,11,14,15]) = 1;
 A( 9,[11,12,15,16]) = 1;
 A = 0.01*A;
 
-V_meas = [
-    4.4903
-    4.3055
-    4.0010
-    3.7554
-    3.2309
-    3.9551
-    3.4226
-    3.3694
-    4.0035];
+% compute measured voltages (forward problem)
+% really this should be done with the acutal physics on a different mesh!
+V_meas = A*R_true + 0.01*randn(size(A,1),1);
 
 % prepare figure
 figure;
