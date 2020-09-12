@@ -3,7 +3,7 @@ close all; clear; clc;
 rng('default');
 
 % options
-doMakeVideo = 1;
+doMakeVideo = 0;
 outputFilename = 'simpleEIT.mp4';
 
 % define problem
