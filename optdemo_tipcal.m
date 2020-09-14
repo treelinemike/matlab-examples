@@ -1,4 +1,4 @@
-% Demonstrate tool tip calibration using data from Medtronic blunt neuro probe and NDI Polaris Optical Tracking system
+    % Demonstrate tool tip calibration using data from Medtronic blunt neuro probe and NDI Polaris Optical Tracking system
 %
 % Takes a series of 3D positions (x,y,z) and orientation quaternions (q0,q1,q2,q3)
 % and finds the best (min SSE) choice of an invarient point in the local coordinate

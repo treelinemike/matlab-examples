@@ -33,7 +33,6 @@ f = @(x)charge_PE_2D(x,charge_locs,charge_vals,q_test,k);
 [x_opt_unc, U_opt_unc] = fminunc(f,x0);
 
 % solve again with consrained optimization
-
 [x_opt_con, U_opt_con] = fmincon(f,x0,[],[],[0 1],x0(2));
 
 % plot results

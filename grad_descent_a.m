@@ -62,7 +62,6 @@ ph0(end+1) = plot(obs_x,yLS,'--','Color',[0 0.7 0],'LineWidth',1.6);
 legStr = {'Observations','Least Squares Solution'};
 
 % initial conditions
-x0 = [-1 5]';
 x0 = [6 6]';
 J0 = (obs_y-H*x0)'*(obs_y-H*x0);
 data = [x0' J0];
@@ -80,7 +79,7 @@ for iter = 1:5000
     % if we didn't have an analytical expression
     % we could do this emperically by takings steps
     % and approximating the local gradient
-    grad = -2*H'*obs_y+2*H'*H*x; % [b,m]' ... just the gradient of the cost function J = (Hx-y)'*(Hx-y)
+    grad = -2*H'*obs_y+2*(H'*H)*x; % [b,m]' ... just the gradient of the cost function J = (Hx-y)'*(Hx-y)
     
     % change gradient if using coordinate or stochastic gradient descent
     switch grad_type
