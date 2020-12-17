@@ -2,14 +2,18 @@
 %
 % Requires several physical paramters including the location of the CM and
 % the rotation matrix to align principal axes with inertial space
+%
+% Author:   Mike Kokko
+% Modified: 17-Dec-2020
 
 % restart
-close all; clear all; clc;
+close all; clear; clc;
 
 % simulation time parameters
-t0 = 0;      % [s] simulation start time
-tf = 15;     % [s] simulation end time
-dt = 0.05;   % [s] timestep size
+t0 = 0;         % [s] simulation start time
+tf = 15;        % [s] simulation end time
+dt = 0.005;     % [s] timestep size
+anim_step = 10; % skip this many frames to speed up animation
 
 % load STL file
 % notes:   STL units should be [mm]
@@ -35,9 +39,10 @@ patch('Faces',stl.ConnectivityList,'Vertices',stl.Points,'FaceColor',[0.8 0.2 0.
 xlabel('\bfx');
 ylabel('\bfy');
 zlabel('\bfz');
+title('\bfSTL Transformed to Principal Axes about CM');
 
 % initial conditions X0 = [theta_x_0 theta_y_0 theta_z_0 omega_x_0 omega_y_0 omega_z_0]
-X0 = [0 0 0 0 2 0]'; % [rad rad rad rad/s rad/s rad/s]'
+X0 = [0 0 0 0 2 0.0]'; % [rad rad rad rad/s rad/s rad/s]'
 X = X0;
 
 % data storage
@@ -82,57 +87,61 @@ for tIdx = 2:size(data,2)
     d_theta_z = data(3,tIdx) - data(3,tIdx-1);
     xRot = [1 0 0 ; 0 cos(d_theta_x) -sin(d_theta_x); 0 sin(d_theta_x) cos(d_theta_x)];
     yRot = [cos(d_theta_y) 0 sin(d_theta_y); 0 1 0; -sin(d_theta_y) 0 cos(d_theta_y)];
-    zRot = [cos(d_theta_z) -sin(d_theta_z) 0 ; sin(d_theta_z) cos(d_theta_z) 0; 0 0 1];    
+    zRot = [cos(d_theta_z) -sin(d_theta_z) 0 ; sin(d_theta_z) cos(d_theta_z) 0; 0 0 1];
     R  = R*(xRot*yRot*zRot*eye(3));     % incremental rotations so order shouldn't matter
+    
+    % skip frames if desired to speed up animation
+    % don't do this in the for loop b/c need to update rotation at each step
+    if( mod(tIdx-2,anim_step) == 0 )
+        % transform point cloud to correct location in inertial space
+        triad_xyz = triad_xyz_template*R';
         
-    % transform point cloud to correct location in inertial space
-    triad_xyz = triad_xyz_template*R';
-    
-    % compute angular velocity in terms of the inertial basis (XYZ)
-    omega = data(4:6,tIdx);
-    omega_XYZ = R*omega;
-    
-    % compute angular momentum vector in terms of inertial basis (XYZ)
-    % THIS SHOULD STAY CONSTANT (no external moments)
-    Hcm_xyz = Icm*omega;
-    Hcm_XYZ = R*Hcm_xyz;
-    
-    % clear axes and start plotting the current frame
-    cla;
-    
-    % plot XYZ (all black) and xyz (x=red, y=green, z=blue) coordinate frames
-    plot3(triad_XYZ(:,1),triad_XYZ(:,2),triad_XYZ(:,3),'LineWidth',4,'Color','k')
-    plot3([triad_xyz(1,1) triad_xyz(2,1)],[triad_xyz(1,2) triad_xyz(2,2)],[triad_xyz(1,3) triad_xyz(2,3)],'LineWidth',3,'Color',[0.7 0 0]);
-    plot3([triad_xyz(3,1) triad_xyz(4,1)],[triad_xyz(3,2) triad_xyz(4,2)],[triad_xyz(3,3) triad_xyz(4,3)],'LineWidth',3,'Color',[0 0.7 0]);
-    plot3([triad_xyz(5,1) triad_xyz(6,1)],[triad_xyz(5,2) triad_xyz(6,2)],[triad_xyz(5,3) triad_xyz(6,3)],'LineWidth',3,'Color',[0 0 0.7]);
-    
-    % normalize and plot angular velocity and momentum
-    omega_norm = 2.6*omega_XYZ/norm(omega_XYZ);
-    Hcm_norm = 2.6*Hcm_XYZ/norm(Hcm_XYZ);
-    ph(1) = plot3([0 omega_norm(1)],[0 omega_norm(2)],[0 omega_norm(3)],':','LineWidth',3','Color',[1 0 1]);
-    ph(2) = plot3([0 Hcm_norm(1)],[0 Hcm_norm(2)],[0 Hcm_norm(3)],':','LineWidth',3','Color',[0 1 1]);
-    
-    % plot board as patch object
-    patch('Faces',stl.ConnectivityList,'Vertices',stl_pts*R','FaceColor',[0.8 0.2 0.2],'EdgeColor',[0 0 0],'LineWidth',0.5);
-    
-    % finish formatting axes
-    axis equal;
-    xlim(sqrt(2)*[-triad_scale triad_scale]);
-    ylim(sqrt(2)*[-triad_scale triad_scale]);
-    zlim(sqrt(2)*[-triad_scale triad_scale]);
-    xlabel('\bfx');
-    ylabel('\bfy');
-    zlabel('\bfz');
-    
-    % add legend on first pass
-    % except legends don't work so well on Mac for some reason?
-    if(firstrun)
-%         legend(ph,{'Angular Velocity','Angular Momentum'},'Location','southoutside','AutoUpdate','off');
-        firstrun = 0;
+        % compute angular velocity in terms of the inertial basis (XYZ)
+        omega = data(4:6,tIdx);
+        omega_XYZ = R*omega;
+        
+        % compute angular momentum vector in terms of inertial basis (XYZ)
+        % THIS SHOULD STAY CONSTANT (no external moments)
+        Hcm_xyz = Icm*omega;
+        Hcm_XYZ = R*Hcm_xyz;
+        
+        % clear axes and start plotting the current frame
+        cla;
+        
+        % plot XYZ (all black) and xyz (x=red, y=green, z=blue) coordinate frames
+        plot3(triad_XYZ(:,1),triad_XYZ(:,2),triad_XYZ(:,3),'LineWidth',4,'Color','k')
+        plot3([triad_xyz(1,1) triad_xyz(2,1)],[triad_xyz(1,2) triad_xyz(2,2)],[triad_xyz(1,3) triad_xyz(2,3)],'LineWidth',3,'Color',[0.7 0 0]);
+        plot3([triad_xyz(3,1) triad_xyz(4,1)],[triad_xyz(3,2) triad_xyz(4,2)],[triad_xyz(3,3) triad_xyz(4,3)],'LineWidth',3,'Color',[0 0.7 0]);
+        plot3([triad_xyz(5,1) triad_xyz(6,1)],[triad_xyz(5,2) triad_xyz(6,2)],[triad_xyz(5,3) triad_xyz(6,3)],'LineWidth',3,'Color',[0 0 0.7]);
+        
+        % normalize and plot angular velocity and momentum
+        omega_norm = 2.6*omega_XYZ/norm(omega_XYZ);
+        Hcm_norm = 2.6*Hcm_XYZ/norm(Hcm_XYZ);
+        ph(1) = plot3([0 omega_norm(1)],[0 omega_norm(2)],[0 omega_norm(3)],':','LineWidth',3','Color',[1 0 1]);
+        ph(2) = plot3([0 Hcm_norm(1)],[0 Hcm_norm(2)],[0 Hcm_norm(3)],':','LineWidth',3','Color',[0 1 1]);
+        
+        % plot board as patch object
+        patch('Faces',stl.ConnectivityList,'Vertices',stl_pts*R','FaceColor',[0.8 0.2 0.2],'EdgeColor',[0 0 0],'LineWidth',0.5);
+        
+        % finish formatting axes
+        axis equal;
+        xlim(sqrt(2)*[-triad_scale triad_scale]);
+        ylim(sqrt(2)*[-triad_scale triad_scale]);
+        zlim(sqrt(2)*[-triad_scale triad_scale]);
+        xlabel('\bfx');
+        ylabel('\bfy');
+        zlabel('\bfz');
+        
+        % add legend on first pass
+        % except legends don't work so well on Mac for some reason?
+        if(firstrun)
+            %         legend(ph,{'Angular Velocity','Angular Momentum'},'Location','southoutside','AutoUpdate','off');
+            firstrun = 0;
+        end
+        view([145,30]);
+        
+        drawnow;
     end
-    view([145,30]);
-
-    drawnow;
 end
 
 % propagate state
