@@ -13,7 +13,11 @@ close all; clear; clc;
 t0 = 0;         % [s] simulation start time
 tf = 15;        % [s] simulation end time
 dt = 0.005;     % [s] timestep size
-anim_step = 10; % skip this many frames to speed up animation
+
+% plotting parameters
+anim_step = 10;      % skip this many frames to speed up animation
+z_shadow = -0.1;     % z coordinate of plane for plotting shadow
+h_resample = 0.001;  % discritization for sampling shadow, smaller = slower & less precise
 
 % load STL file
 % notes:   STL units should be [mm]
@@ -42,7 +46,7 @@ zlabel('\bfz');
 title('\bfSTL Transformed to Principal Axes about CM');
 
 % initial conditions X0 = [theta_x_0 theta_y_0 theta_z_0 omega_x_0 omega_y_0 omega_z_0]
-X0 = [0 0 0 0 2 0.0]'; % [rad rad rad rad/s rad/s rad/s]'
+X0 = [0 0 0 0 2 0]'; % [rad rad rad rad/s rad/s rad/s]'
 X = X0;
 
 % data storage
@@ -120,8 +124,20 @@ for tIdx = 2:size(data,2)
         ph(1) = plot3([0 omega_norm(1)],[0 omega_norm(2)],[0 omega_norm(3)],':','LineWidth',3','Color',[1 0 1]);
         ph(2) = plot3([0 Hcm_norm(1)],[0 Hcm_norm(2)],[0 Hcm_norm(3)],':','LineWidth',3','Color',[0 1 1]);
         
-        % plot board as patch object
+        % plot patch object
         patch('Faces',stl.ConnectivityList,'Vertices',stl_pts*R','FaceColor',[0.8 0.2 0.2],'EdgeColor',[0 0 0],'LineWidth',0.5);
+        
+        % compute and plot shadow (with its properties)
+        newtri = triangulation(stl.ConnectivityList,stl_pts*R');
+        poly_shadow = tri_z_proj(newtri,h_resample);
+        [xc, yc] = centroid(poly_shadow);
+        A = area(poly_shadow);
+        fprintf('Polygon area: %6.2e\n',A);
+        fprintf('Polygon centroid: (%6.2e,%6.2e)\n',xc,yc);
+        t = hgtransform('Matrix',[ eye(3) [0 0 z_shadow]'; [0 0 0 1]]); 
+        ph = plot(poly_shadow,'Parent',t);
+        plot3(0,0,z_shadow,'.','MarkerSize',20,'Color',[0 0 0]);
+        plot3(xc,yc,z_shadow,'.','MarkerSize',20,'Color',[0.8 0 0]);
         
         % finish formatting axes
         axis equal;
