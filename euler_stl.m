@@ -46,7 +46,7 @@ zlabel('\bfz');
 title('\bfSTL Transformed to Principal Axes about CM');
 
 % initial conditions X0 = [theta_x_0 theta_y_0 theta_z_0 omega_x_0 omega_y_0 omega_z_0]
-X0 = [0 0 0 0 2 0]'; % [rad rad rad rad/s rad/s rad/s]'
+X0 = [0 0 0 2 1 0]'; % [rad rad rad rad/s rad/s rad/s]'
 X = X0;
 
 % data storage
