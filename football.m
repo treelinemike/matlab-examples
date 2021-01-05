@@ -5,7 +5,7 @@
 close all; clear all; clc;
 
 % general options
-doMakeVideo = 1; % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
+doMakeVideo = 0; % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
 videoFileName = 'football';
 videoFrameRate = 20; % [frames/sec]
 

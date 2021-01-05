@@ -8,7 +8,7 @@ close all; clear all; clc;
 
 % general options
 anim_step = 1; % speed up animation by skipping this many frames between refreshing plot
-doMakeVideo = 1; % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
+doMakeVideo = 0; % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
 videoFileName = 'pendulum';
 videoFrameRate = 20; % [frames/sec]
 
@@ -100,7 +100,7 @@ ph_tseries_vel = plot(nan,nan,'-','Color',[0.8 0 0],'LineWidth',2);
 legend([ph_tseries_pos,ph_tseries_vel],{'Position [rad]','Velocity [rad/s]'},'Location','Northeast');
 xlabel('\bfTime [s]');
 set(gca,'XLim',[t0 tf]);
-set(gca,'YLim',[-4 4]);
+set(gca,'YLim',[min([x1traj;x2traj]),max([x1traj;x2traj])]);
 
 % plot pendulum
 nexttile(1,[2,1]);
