@@ -45,5 +45,5 @@ linkaxes(ax,'xy');
 
 % add titles
 title(t,'\bfSuper Title');
-xlabel(t,'\bfSuper X Axis');
-ylabel(t,'\bfSuper Y Axis');
+xlabel(t,'\bfSuper X Axis Label');
+ylabel(t,'\bfSuper Y Axis Label');
