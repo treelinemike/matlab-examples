@@ -28,7 +28,7 @@ disp(['Queried offset:        ' char(duration(localTZOffset,'Format','hh:mm:ss')
 % to do this correctly we need to work with UNZONED datetimes (i.e. set the 'TimeZone' property to '')
 localTZOffset_computed_wrong = localDateTime - convertedDateTime;  % NOTE: This will be zero because the this is the same instant in time measured at two different locations!
 disp(['Wrong offset:          ' char(duration(localTZOffset_computed_wrong,'Format','hh:mm:ss'))]);
-localTZOffset_computed_correct = datetime(localDateTime,'TimeZone','') - datetime(convertedDateTime,'TimeZone','');  % NOTE: This will be zero because the this is the same instant in time measured at two different locations!
+localTZOffset_computed_correct = datetime(localDateTime,'TimeZone','') - datetime(convertedDateTime,'TimeZone','');
 disp(['Correct offset:        ' char(duration(localTZOffset_computed_correct,'Format','hh:mm:ss'))]);
 
 % add 60 seconds to UNIX time and convert
