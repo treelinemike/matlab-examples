@@ -16,9 +16,20 @@ fprintf('Current UNIX time:     %20.9f\n',currentUnixTime);  % display to nanose
 convertedDateTime = datetime(currentUnixTime,'ConvertFrom','posixtime','TimeZone','UTC');
 disp(['Converted datetime:    ' datestr(convertedDateTime)]);
 
-% get offset from UTC (i.e. GMT)
+% show as local time
+localDateTime = datetime(currentUnixTime,'ConvertFrom','posixtime','TimeZone','local');
+disp(['Local datetime:        ' datestr(localDateTime)]);
+
+% query actual local offset from UTC (i.e. GMT)
 localTZOffset = tzoffset(datetime('today','TimeZone','local'));
-disp(['Local offset from UTC: ' char(localTZOffset)]);
+disp(['Queried offset:        ' char(duration(localTZOffset,'Format','hh:mm:ss'))]);
+
+% compute local offset from UTC
+% to do this correctly we need to work with UNZONED datetimes (i.e. set the 'TimeZone' property to '')
+localTZOffset_computed_wrong = localDateTime - convertedDateTime;  % NOTE: This will be zero because the this is the same instant in time measured at two different locations!
+disp(['Wrong offset:          ' char(duration(localTZOffset_computed_wrong,'Format','hh:mm:ss'))]);
+localTZOffset_computed_correct = datetime(localDateTime,'TimeZone','') - datetime(convertedDateTime,'TimeZone','');  % NOTE: This will be zero because the this is the same instant in time measured at two different locations!
+disp(['Correct offset:        ' char(duration(localTZOffset_computed_correct,'Format','hh:mm:ss'))]);
 
 % add 60 seconds to UNIX time and convert
 % verifies that we can do math in seconds on unix timestamps
