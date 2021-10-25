@@ -13,7 +13,7 @@ fprintf('Current UNIX time:     %20.9f\n',currentUnixTime);  % display to nanose
 
 % convert UNIX time back to MATLAB datetime
 % assuming UNIX time was reported in UTC
-convertedDateTime = datetime(currentUnixTime,'ConvertFrom','posixtime','TimeZone','local');
+convertedDateTime = datetime(currentUnixTime,'ConvertFrom','posixtime','TimeZone','UTC');
 disp(['Converted datetime:    ' datestr(convertedDateTime)]);
 
 % get offset from UTC (i.e. GMT)
