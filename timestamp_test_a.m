@@ -11,7 +11,7 @@ disp(['Current datetime:      ' datestr(currentDateTime)]);
 currentUnixTime = posixtime(currentDateTime);
 fprintf('Current UNIX time:     %20.9f\n',currentUnixTime);  % display to nanoseconds, not sure about actual underlying accuracy
 
-% convert UNIX time back to MATLAB datetime
+% convert UNIX time back to MATLAB datetimedt
 % assuming UNIX time was reported in UTC
 convertedDateTime = datetime(currentUnixTime,'ConvertFrom','posixtime','TimeZone','UTC');
 disp(['Converted datetime:    ' datestr(convertedDateTime)]);
@@ -19,3 +19,9 @@ disp(['Converted datetime:    ' datestr(convertedDateTime)]);
 % get offset from UTC (i.e. GMT)
 localTZOffset = tzoffset(datetime('today','TimeZone','local'));
 disp(['Local offset from UTC: ' char(localTZOffset)]);
+
+% add 60 seconds to UNIX time and convert
+% verifys that we can do math in seconds on unix timestamps
+updatedUnixTime = currentUnixTime + 60;
+updatedDateTime = datetime(updatedUnixTime,'ConvertFrom','posixtime','TimeZone','UTC');
+disp(['Updated datetime:      ' datestr(updatedDateTime)]);
