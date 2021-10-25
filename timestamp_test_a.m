@@ -21,7 +21,7 @@ localTZOffset = tzoffset(datetime('today','TimeZone','local'));
 disp(['Local offset from UTC: ' char(localTZOffset)]);
 
 % add 60 seconds to UNIX time and convert
-% verifys that we can do math in seconds on unix timestamps
+% verifies that we can do math in seconds on unix timestamps
 updatedUnixTime = currentUnixTime + 60;
 updatedDateTime = datetime(updatedUnixTime,'ConvertFrom','posixtime','TimeZone','UTC');
 disp(['Updated datetime:      ' datestr(updatedDateTime)]);
