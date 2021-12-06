@@ -17,15 +17,17 @@ if(ismac)
 end
 
 % general options
-anim_step = 100;                       % skip this many frames to speed up animation
+anim_step = 200;                       % skip this many frames to speed up animation
 doMakeVideo = 0;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
 videoFrameRate = 20;                   % [frames/sec]
 videoFileName = 'dual_sphere';
 
-% simulation time parameters
+% simulation time and position parameters
+% TODO: float the simulation end time...
 t0 = 0;                                % [s] simulation start time
-tf = 20;                               % [s] simulation end time
+tf = 25;                               % [s] simulation end time
 dt = 0.001;                            % [s] timestep size
+z_end = -40;                           % [m] vertical position at which to terminate simulation
 
 % physical parameters of system
 % ASSUMING IDENTICAL SPHERES (TODO: allow different masses)
@@ -45,6 +47,8 @@ params.g = 1.62;                       % [m/s^2]
 params.m1 = m;                         % [kg] assuming equal mass spheres for now...
 params.m2 = m;                         % [kg] assuming equal mass spheres for now...
 params.sph_locs = [r 0 0; -r 0 0];     % [m] rigid body sphere locations - relative to point "p" on cable
+params.doneflag(1) = false;            % flag to stop simulating
+params.doneflag(2) = false;            % flag to stop simulating
 
 % DEFINE INITAL CONDITIONS
 R0 = eye(3);                           % initial rotation matrix
@@ -98,6 +102,7 @@ v1_mag = nan;
 v2_mag = nan;
 
 %% run simulation
+% TODO: end based on conditions (or timeout)
 for t = t0:dt:(tf-dt)
     
     % calculate timestep for ODE solving
@@ -124,15 +129,17 @@ for t = t0:dt:(tf-dt)
             % stop each sphere when it contacts regolith
             t1_z = data(15,end);
             t2_z = data(21,end);
-            if(t1_z < 0)
+            if((t1_z < z_end) && (~params.doneflag(1)))
+                v1_mag = norm( data(16:18,end) );
+                fprintf('v1 at impact: %0.2f m/s @ %03f sec\n', v1_mag, t);
                 X(16:18) = 0;
-                v1_mag = norm( data(16:18) );
-                params.m1 = 0;  % hack... we're really want a new mode for motion through regolith
+                params.doneflag(1) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
-            if(t2_z < 0)
+            if((t2_z < z_end) && (~params.doneflag(2)))
+                v2_mag = norm( data(22:24,end) );
+                fprintf('v2 at impact: %0.2f m/s @ %03f sec\n', v2_mag, t);
                 X(22:24) = 0;
-                v2_mag = norm( data(22:24) );
-                params.m2 = 0;  % hack... we're really want a new mode for motion through regolith
+                params.doneflag(2) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
     end
 
@@ -187,8 +194,7 @@ for t = t0:dt:(tf-dt)
     time(end+1) = T(end);
 
 end
-fprintf('v1 at impact: %0.2f m/s\n', v1_mag);
-fprintf('v2 at impact: %0.2f m/s\n', v2_mag);
+
 
 %% develop and display animation of motion
 % define Cartesian frames
@@ -298,7 +304,7 @@ for tIdx = 1:size(data,2)
         axis equal;
         xlim([-2*r 1.1*max([ data(13,:) data(19,:)])]);
         ylim([-2*r 2*r]);
-        zlim([-2*r 1.5*max([ data(15,:) data(21,:)])]);       
+        zlim([ min([ data(15,:) data(21,:)]) 1.5*max([ data(15,:) data(21,:)])]);       
         th.String = sprintf('Dual Sphere Sim (%6.3fs)',time(tIdx));
 
         % save frame for video if desired
@@ -317,6 +323,22 @@ if(doMakeVideo)
     system(['ffmpeg -y -r ' num2str(videoFrameRate) ' -start_number 1 -i frame%03d.png -vf "format=rgba,scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25 ' videoFileName '.mp4']);
     system('rm frame*.png');
 end
+
+%% check energy
+g = params.g;
+m1 = params.m1;
+h1 = data(15,:);
+v1 = vecnorm(data(16:18,:),2,1);
+m2 = params.m2;
+h2 = data(21,:);
+v2 = vecnorm(data(22:24,:),2,1);
+E = m1*g*h1 + 0.5*m1*v1.^2 + m2*g*h2 + 0.5*m2*v2.^2;
+figure;
+hold on; grid on;
+plot(time,E,'LineWidth',1.6,'Color',[0 0.8 0]);
+xlabel('\bfTime [sec]');
+ylabel('\bfTotal Energy [N*m]');
+title('\bfEnergy Check');
 
 %% plot trajectories
 % could add a bunch of other traces here...
@@ -418,11 +440,11 @@ Xdot(14,:) = v1_y;
 Xdot(15,:) = v1_z;
 Xdot(16,:) = 0;
 Xdot(17,:) = 0;
-Xdot(18,:) = -g;
+Xdot(18,:) = (-g)*(~params.doneflag(1));
 Xdot(19,:) = v2_x;
 Xdot(20,:) = v2_y;
 Xdot(21,:) = v2_z;
 Xdot(22,:) = 0;
 Xdot(23,:) = 0;
-Xdot(24,:) = -g;
+Xdot(24,:) = (-g)*(~params.doneflag(2));
 end
