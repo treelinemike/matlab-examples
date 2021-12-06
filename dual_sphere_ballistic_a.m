@@ -18,8 +18,8 @@ end
 
 % general options
 anim_step = 100;                       % skip this many frames to speed up animation
-doMakeVideo = 0;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
-videoFrameRate = 10;                   % [frames/sec]
+doMakeVideo = 1;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
+videoFrameRate = 20;                   % [frames/sec]
 videoFileName = 'dual_sphere';
 
 % simulation time parameters
@@ -197,7 +197,7 @@ triad_xyz_template = .8*triad_XYZ;
 
 % initialize figure
 figure;
-set(gcf,'Position',[0145 0137 1.232800e+03 4.832000e+02]);
+set(gcf,'Position',[2.506000e+02 1.914000e+02 1084 4.832000e+02]);
 hold on; grid on;
 
 % show full trajectory
@@ -221,8 +221,8 @@ th = title('');
 xlabel('\bfx');
 ylabel('\bfy');
 zlabel('\bfz');
-view([145,30]);
-% view([180,0]);
+% view([145,30]);
+view([180,0]);
 
 % animate each frame of the results
 saveFrameIdx = 0;
@@ -314,7 +314,7 @@ end
 
 % generate movie with ffmpeg if desired
 if(doMakeVideo)
-    system(['ffmpeg -y -r ' num2str(videoFrameRate) ' -start_number 1 -i frame%03d.png -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25 ' videoFileName '.mp4']);
+    system(['ffmpeg -y -r ' num2str(videoFrameRate) ' -start_number 1 -i frame%03d.png -vf "format=rgba,scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25 ' videoFileName '.mp4']);
     system('rm frame*.png');
 end
 
