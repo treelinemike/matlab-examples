@@ -18,7 +18,7 @@ end
 
 % general options
 anim_step = 100;                       % skip this many frames to speed up animation
-doMakeVideo = 1;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
+doMakeVideo = 0;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
 videoFrameRate = 20;                   % [frames/sec]
 videoFileName = 'dual_sphere';
 
