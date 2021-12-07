@@ -27,7 +27,7 @@ videoFileName = 'dual_sphere';
 t0 = 0;                                % [s] simulation start time
 tf = 25;                               % [s] simulation end time
 dt = 0.001;                            % [s] timestep size
-z_end = -40;                           % [m] vertical position at which to terminate simulation
+z_end = 0;                           % [m] vertical position at which to terminate simulation
 
 % physical parameters of system
 % ASSUMING IDENTICAL SPHERES (TODO: allow different masses)
@@ -52,7 +52,7 @@ params.doneflag(2) = false;            % flag to stop simulating
 
 % DEFINE INITAL CONDITIONS
 R0 = eye(3);                           % initial rotation matrix
-omega0 = [0 -1.8 0];                   % [rad/s] initial rigid body angular velocity
+omega0 = [0 -1.45 0];                   % [rad/s] initial rigid body angular velocity
 tctr0 = [0 0 0];                       % [m] initial position of point "p" on cable in inertial frame
 vctr0 = 15*[cos(pi/4) 0 sin(pi/4)];    % [m/s] initial linear velocity at point "p" on cable
 
