@@ -52,7 +52,7 @@ params.doneflag(2) = false;            % flag to stop simulating
 
 % DEFINE INITAL CONDITIONS
 R0 = eye(3);                           % initial rotation matrix
-omega0 = [0 -1.8 0];                     % [rad/s] initial rigid body angular velocity
+omega0 = [0 -1.8 0];                   % [rad/s] initial rigid body angular velocity
 tctr0 = [0 0 0];                       % [m] initial position of point "p" on cable in inertial frame
 vctr0 = 15*[cos(pi/4) 0 sin(pi/4)];    % [m/s] initial linear velocity at point "p" on cable
 
@@ -131,13 +131,15 @@ for t = t0:dt:(tf-dt)
             t2_z = data(21,end);
             if((t1_z < z_end) && (~params.doneflag(1)))
                 v1_mag = norm( data(16:18,end) );
-                fprintf('v1 at impact: %0.2f m/s @ %03f sec\n', v1_mag, t);
+                xyz1  = data(13:15,end);
+                fprintf('Sphere 1 impact: %0.2fm/s @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v1_mag, t, xyz1);
                 X(16:18) = 0;
                 params.doneflag(1) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
             if((t2_z < z_end) && (~params.doneflag(2)))
                 v2_mag = norm( data(22:24,end) );
-                fprintf('v2 at impact: %0.2f m/s @ %03f sec\n', v2_mag, t);
+                xyz2  = data(19:21,end);
+                fprintf('Sphere 2 impact: %0.2fm/s @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v2_mag, t, xyz2);
                 X(22:24) = 0;
                 params.doneflag(2) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
@@ -195,6 +197,24 @@ for t = t0:dt:(tf-dt)
 
 end
 
+%% check energy
+g = params.g;
+m1 = params.m1;
+h1 = data(15,:);
+v1 = vecnorm(data(16:18,:),2,1);
+m2 = params.m2;
+h2 = data(21,:);
+v2 = vecnorm(data(22:24,:),2,1);
+KE =  0.5*m1*v1.^2 + 0.5*m2*v2.^2;
+PE = m1*g*h1 + m2*g*h2;
+E = PE + KE;
+fprintf('Launch KE: %0.1fkJ\n',KE(1)/1000);
+figure;
+hold on; grid on;
+plot(time,E,'LineWidth',1.6,'Color',[0 0.8 0]);
+xlabel('\bfTime [sec]');
+ylabel('\bfTotal Energy [N*m]');
+title('\bfEnergy Check');
 
 %% develop and display animation of motion
 % define Cartesian frames
@@ -323,22 +343,6 @@ if(doMakeVideo)
     system(['ffmpeg -y -r ' num2str(videoFrameRate) ' -start_number 1 -i frame%03d.png -vf "format=rgba,scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25 ' videoFileName '.mp4']);
     system('rm frame*.png');
 end
-
-%% check energy
-g = params.g;
-m1 = params.m1;
-h1 = data(15,:);
-v1 = vecnorm(data(16:18,:),2,1);
-m2 = params.m2;
-h2 = data(21,:);
-v2 = vecnorm(data(22:24,:),2,1);
-E = m1*g*h1 + 0.5*m1*v1.^2 + m2*g*h2 + 0.5*m2*v2.^2;
-figure;
-hold on; grid on;
-plot(time,E,'LineWidth',1.6,'Color',[0 0.8 0]);
-xlabel('\bfTime [sec]');
-ylabel('\bfTotal Energy [N*m]');
-title('\bfEnergy Check');
 
 %% plot trajectories
 % could add a bunch of other traces here...
