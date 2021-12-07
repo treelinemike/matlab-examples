@@ -132,18 +132,20 @@ for t = t0:dt:(tf-dt)
             if((t1_z < z_end) && (~params.doneflag(1)))
                 v1 = data(16:18,end);
                 v1_mag = norm(v1);
+                E1 = 0.5*params.m1*v1_mag^2;
                 xyz1  = data(13:15,end);
                 ang1 = acos(abs(dot(unitvec(v1),[1 0 0])))*180/pi;
-                fprintf('Sphere 1 impact: %6.1fm/s, %5.1f° @ %6.1fs (%8.1f,%8.1f,%8.1f)\n', v1_mag, ang1, t, xyz1);
+                fprintf('Sphere 1 impact: %4.0fkJ, %6.1fm/s, %5.1f° @ %6.1fs (%8.1f,%8.1f,%8.1f)\n', E1/1000, v1_mag, ang1, t, xyz1);
                 X(16:18) = 0;
                 params.doneflag(1) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
             if((t2_z < z_end) && (~params.doneflag(2)))
                 v2 = data(22:24,end);
                 v2_mag = norm(v2);
+                E2 = 0.5*params.m2*v2_mag^2;
                 xyz2  = data(19:21,end);
                 ang2 = acos(abs(dot(unitvec(v2),[1 0 0])))*180/pi;
-                fprintf('Sphere 2 impact: %6.1fm/s, %5.1f° @ %6.1fs (%8.1f,%8.1f,%8.1f)\n', v2_mag, ang2, t, xyz2);
+                fprintf('Sphere 2 impact: %4.0fkJ, %6.1fm/s, %5.1f° @ %6.1fs (%8.1f,%8.1f,%8.1f)\n', E2/1000, v2_mag, ang2, t, xyz2);
                 X(22:24) = 0;
                 params.doneflag(2) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
@@ -212,12 +214,12 @@ v2 = vecnorm(data(22:24,:),2,1);
 KE =  0.5*m1*v1.^2 + 0.5*m2*v2.^2;
 PE = m1*g*h1 + m2*g*h2;
 E = PE + KE;
-fprintf('Launch KE: %0.1fkJ\n',KE(1)/1000);
+fprintf('Launch KE: %0.0fkJ\n',KE(1)/1000);
 figure;
 hold on; grid on;
-plot(time,E,'LineWidth',1.6,'Color',[0 0.8 0]);
+plot(time,E/1000,'LineWidth',1.6,'Color',[0 0.8 0]);
 xlabel('\bfTime [sec]');
-ylabel('\bfTotal Energy [N*m]');
+ylabel('\bfTotal Energy [kJ]');
 title('\bfEnergy Check');
 
 %% develop and display animation of motion
