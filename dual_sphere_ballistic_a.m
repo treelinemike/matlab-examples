@@ -130,16 +130,20 @@ for t = t0:dt:(tf-dt)
             t1_z = data(15,end);
             t2_z = data(21,end);
             if((t1_z < z_end) && (~params.doneflag(1)))
-                v1_mag = norm( data(16:18,end) );
+                v1 = data(16:18,end);
+                v1_mag = norm(v1);
                 xyz1  = data(13:15,end);
-                fprintf('Sphere 1 impact: %0.2fm/s @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v1_mag, t, xyz1);
+                ang1 = acos(abs(dot(unitvec(v1),[1 0 0])))*180/pi;
+                fprintf('Sphere 1 impact: %0.2fm/s, %5.1f° @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v1_mag, ang1, t, xyz1);
                 X(16:18) = 0;
                 params.doneflag(1) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
             if((t2_z < z_end) && (~params.doneflag(2)))
-                v2_mag = norm( data(22:24,end) );
+                v2 = data(22:24,end);
+                v2_mag = norm(v2);
                 xyz2  = data(19:21,end);
-                fprintf('Sphere 2 impact: %0.2fm/s @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v2_mag, t, xyz2);
+                ang2 = acos(abs(dot(unitvec(v2),[1 0 0])))*180/pi;
+                fprintf('Sphere 2 impact: %0.2fm/s, %5.1f° @ %0.3fs (%8.1f,%8.1f,%8.1f)\n', v2_mag, ang2, t, xyz2);
                 X(22:24) = 0;
                 params.doneflag(2) = true;  % hack... would really want an initial impact impulse and regolith penetration mode
             end
