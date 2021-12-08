@@ -222,6 +222,15 @@ xlabel('\bfTime [sec]');
 ylabel('\bfTotal Energy [kJ]');
 title('\bfEnergy Check');
 
+%% compute cable tension
+% see paper analysis: should only depend upon mass, distance from cm, and
+% angular velocity... obviously only valid in mode 1
+% Ft1 == Ft2 b/c |m1*r1| = |m2*r2| if r is referenced to the CM
+Ft1 = params.m1*norm(params.sph_locs(1,:))*vecnorm(data(4:6,mode_data == 1),2,1).^2;
+Ft2 = params.m2*norm(params.sph_locs(2,:))*vecnorm(data(4:6,mode_data == 1),2,1).^2;
+fprintf('Ft1 = %6.2f ± %8.1e kN\n',mean(Ft1)/1000,std(Ft1)/1000);
+fprintf('Ft2 = %6.2f ± %8.1e kN\n',mean(Ft2)/1000,std(Ft2)/1000);
+
 %% develop and display animation of motion
 % define Cartesian frames
 triad_XYZ = 0.8*r*[0 0 0; 1 0 0; 0 0 0; 0 1 0; 0 0 0; 0 0 1];
