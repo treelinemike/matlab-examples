@@ -23,7 +23,7 @@ end
 % general options
 anim_step = 5;                      % skip this many steps between frames to speed up animation
 doMakeVideo = 0;                    % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
-videoFileName = 'stl_animtate';
+videoFileName = 'stl_animate';
 videoFrameRate = 30;                % [frames/sec]
 
 % load STL file (see notes above)
