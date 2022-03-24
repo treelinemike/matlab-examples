@@ -11,7 +11,7 @@ N = 50;
 x = linspace(xi,xf,N);
 yi = 4;
 yf = 0;
-y_all = yf*ones(1,N);
+y_all = linspace(yi,yf,N);
 y0 = y_all(2:end-1);
 
 % create params struct
@@ -39,8 +39,10 @@ t_min
 % plot results
 figure;
 hold on; grid on;
-plot(x,y,'LineWidth',1.6);
+plot(x,y_all,'LineWidth',1.6,'Color',[0.8 0 0]);
+plot(x,y,'LineWidth',1.6,'Color',[0 0 0.8]);
 daspect([1 1 1]);
+legend(sprintf('Initial Path t = %0.2fs',t_initial),sprintf('Optimal Path t = %0.2fs',t_min));
 
 % path time computation
 function t = pathtime(y,params)
