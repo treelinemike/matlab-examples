@@ -6,11 +6,13 @@ close all; clear; clc;
 
 % parameters
 xi = 5;
-xf = 15;
-N = 50;
-x = linspace(xi,xf,N);
 yi = 4;
+xf = 15;
 yf = 0;
+N = 50;
+
+% generate initial curve
+x = linspace(xi,xf,N);
 y_all = linspace(yi,yf,N);
 y0 = y_all(2:end-1);
 
