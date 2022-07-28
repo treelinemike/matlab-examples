@@ -11,13 +11,13 @@ if(ismac)
     setenv('PATH', [getenv('PATH') ':/usr/local/bin']);
 end
 
-global Ft;  % this is a hack! but it should work to get tension out of ODE sovler
+global Ft alpha;  % this is a hack! but it should work to get tension and alpha out of ODE sovler
 
 % sim options
 dt = 0.01;  % [s]
 N_catenary = 100;  % # points in catenary
 anim_step = 5;                       % skip this many frames to speed up animation
-doMakeVideo = 1;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
+doMakeVideo = 0;                       % set to 1 to produce a video file; requires imagemagick ('convert') and ffmpeg
 videoFrameRate = 20;                   % [frames/sec]
 videoFileName = 'dual_sphere';
 
@@ -47,7 +47,7 @@ done_flag = false;
 mode = 0;
 
 % data storage
-X_data = [X0; 0];
+X_data = [X0; 0; 0];  % Ft and alpha are last two rows
 mode_data = [mode];
 
 % run simulation
@@ -62,6 +62,7 @@ while(~done_flag)
             [T,X] = ode45(@(t,X) state_prop_separate(t,X,params),odeTime,X);
             X = X(end, :)';  % note: this step is necessary to keep state vector dimensions correct for next call to ode45()
             Ft = 0;
+            alpha = 0;
         case 1
             [T,X] = ode45(@(t,X) state_prop_tethered(t,X,params),odeTime,X);
             X = X(end, :)';  % note: this step is necessary to keep state vector dimensions correct for next call to ode45()
@@ -113,7 +114,7 @@ while(~done_flag)
     end
 
     % save data
-    X_data(:,end+1) = [X; Ft];
+    X_data(:,end+1) = [X; Ft; alpha];
     mode_data(end+1) = mode;
 
 
@@ -121,22 +122,29 @@ end
 
 % initialize figure
 figure;
-subplot(3,1,1:2);
+set(gcf,'Position',[0611 0140 0560 0782]);
+subplot(5,1,1:3);
 hold on; grid on;
 axis equal;
 xlim([-10 40]);
 ylim([-10 40]);
 ph_cable = plot(nan(N_catenary,1),nan(N_catenary,1),'LineWidth',1.6,'Color',[0 0 0]);
 ph_a = plot(nan,nan,'.','MarkerSize',30,'Color',[0.8 0 0]);
-ph_b = plot(rbx0,rby0,'.','MarkerSize',30,'Color',[0 0 0.8]);
+ph_b = plot(nan,nan,'.','MarkerSize',30,'Color',[0 0 0.8]);
 
-subplot(3,1,3);
+subplot(5,1,4);
 hold on; grid on;
-plot(X_data(end,:),'-','LineWidth',1.6,'Color',[0.8 0.8 0]);
+plot(X_data(9,:),'-','LineWidth',1.6,'Color',[0.8 0.8 0]);
 ph_ft = plot(nan,nan,'.','MarkerSize',30,'Color',[0.8 0.8 0]);
 ylabel('\bfTension [N]');
 
-subplot(3,1,1:2);
+subplot(5,1,5);
+hold on; grid on;
+plot(X_data(10,:),'-','LineWidth',1.6,'Color',[0.8 0 0.8]);
+ph_alpha = plot(nan,nan,'.','MarkerSize',30,'Color',[0.8 0 0.8]);
+ylabel('\bfAlpha [rad/s^2]');
+
+subplot(5,1,1:3);
 % step through data biltting out the new plot positions
 saveFrameIdx = 0;
 for step_idx = 1:anim_step:size(X_data,2);
@@ -166,7 +174,9 @@ for step_idx = 1:anim_step:size(X_data,2);
     plot((params.ma*rax+params.mb*rbx)/(params.ma+params.mb),(params.ma*ray+params.mb*rby)/(params.ma+params.mb),'.','MarkerSize',10,'Color',[0 0.8 0]);
 
     ph_ft.XData = step_idx;
-    ph_ft.YData = X_data(end,step_idx);
+    ph_ft.YData = X_data(9,step_idx);
+    ph_alpha.XData = step_idx;
+    ph_alpha.YData = X_data(10,step_idx);
 
     % update plot
     drawnow;
@@ -192,7 +202,7 @@ end
 % state propagation function for tethered sphere motion
 function Xdot = state_prop_tethered(t,X,params)
 
-global Ft;
+global Ft alpha;
 
 % extract parameters
 g = params.g;
@@ -207,19 +217,21 @@ vay = X(6);
 vbx = X(7);
 vby = X(8);
 
-% generate and solve linear system for soln = [aax, aay, abx, aby, Ft]'
+% generate and solve linear system for soln = [aax, aay, abx, aby, Ft, alpha]'
 theta = atan2((ray-rby),(rax-rbx));
 omega = (vbx-vax)/(rby-ray);
 
 A = [ ...
-    params.ma, 0, 0, 0, cos(theta); ...
-    0, params.ma, 0, 0, sin(theta); ...
-    0, 0, params.mb, 0, -cos(theta); ...
-    0, 0, 0, params.mb, -sin(theta); ...
-    -1, 0, 1, 0, 0 ];
-b = [ 0, -params.ma*params.g, 0, -params.mb*params.g, omega*(vby-vay)]';
+    params.ma, 0, 0, 0, cos(theta), 0; ...
+    0, params.ma, 0, 0, sin(theta), 0 ; ...
+    0, 0, params.mb, 0, -cos(theta), 0; ...
+    0, 0, 0, params.mb, -sin(theta), 0; ...
+    -1, 0, 1, 0, 0, (ray-rby); ...
+    0, -1, 0, 1, 0, (rbx-rax)];
+b = [ 0, -params.ma*params.g, 0, -params.mb*params.g, omega*(vby-vay), omega*(vax-vbx)]';
 soln = A\b;
 Ft = soln(5);
+alpha = soln(6);
 
 % construct Xdot from differential equations
 Xdot = zeros(8,1);
