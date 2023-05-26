@@ -73,10 +73,10 @@ dist_geodesic = Re*a % [miles]'
 xyz_geodesic = [0 dist_geodesic*cos((pi/2)-B);0 dist_geodesic*sin((pi/2)-B);0 0];  % [miles]
 
 %% 4. Show ECEF & Geodesic results "on a map" in ENU (East/North/Up) coordinates
-meanlat = q1.lat;
-meanlon = q1.lon;
-Rlat = [1 0 0; 0 cosd(90-meanlat) -sind(90-meanlat); 0 sind(90-meanlat) cosd(90-meanlat)];
-Rlon = [cosd(90+meanlon) -sind(90+meanlon) 0; sind(90+meanlon) cosd(90+meanlon) 0; 0 0 1];
+originlat = q1.lat;
+originlon = q1.lon;
+Rlat = [1 0 0; 0 cosd(90-originlat) -sind(90-originlat); 0 sind(90-originlat) cosd(90-originlat)];
+Rlon = [cosd(90+originlon) -sind(90+originlon) 0; sind(90+originlon) cosd(90+originlon) 0; 0 0 1];
 R = (Rlon*Rlat)';
 xyz_ecef = ([xyz_1 xyz_2]-xyz_1)*0.000621371; % [miles];
 xyz_enu = ((R)*(xyz_ecef));
@@ -97,7 +97,7 @@ legend('ENU','Geodesic');
 
 
 %% conversion from LAT/LON to ECEF backed out of code from https://github.com/Stellacore/peridetic
-function xyz = latlon_to_xyz(lat_deg,lon_deg,alt_m)
+function xyz = latlon_to_xyz_ecef(lat_deg,lon_deg,alt_m)
 % params = [6378137.0, 298.257222100883]; % GRS80
 ellipsoid_params = [6378137.0, 298.257223563];    % WGS84
 
