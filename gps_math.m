@@ -17,13 +17,25 @@ close all; clear; clc;
 Re = 3963.19;   % [mi] Earth radius (NOTE UNITS!)
 alt = 143;      % [m] altitude above ellipsoid (NOTE UNITS!)
 
-% Occom Pond
-q1.lat = 43.7111093;    % [deg] 
-q1.lon = -72.2877465;   % [deg]
+q1.lat = 43.7128649;%5700;
+q1.lon = -72.2866229;%1110;
 
-% Lebanon, NH
-q2.lat = 43.6423;       % [deg]
-q2.lon = -72.2518;      % [deg]
+q2.lat = 43.71258952;%669;
+q2.lon = -72.28610026;%86587;
+
+% q1.lat =  43.7125998;
+% q1.lon =  -72.2861033;
+% 
+% q2.lat = 43.7110737;
+% q2.lon = -72.2876727;
+
+% % Occom Pond
+% q1.lat = 43.7111093;    % [deg] 
+% q1.lon = -72.2877465;   % [deg]
+% 
+% % Lebanon, NH
+% q2.lat = 43.6423;       % [deg]
+% q2.lon = -72.2518;      % [deg]
 
 % % Greenwich, UK
 % q1.lat = (51+29/60); % [deg]
@@ -86,6 +98,14 @@ fprintf("Bearing q1 to q2: %+04d°%02d'%04.1f''\n",d,m,s);
 [d,m,s] = deg2dms(-C*180/pi);
 fprintf("Bearing q2 to q1: %+04d°%02d'%04.1f''\n",d,m,s);
 
+%% 5. Test linearization - greatly simplifies math required on microcontroller
+k_lat = 1.111091396439484e5; k_lon = 8.061480627748219e4;  % from football field test (peridetic_test_gpsdata.m, use "format long")
+x_meters = k_lon*(q2.lon - q1.lon);
+y_meters = k_lat*(q2.lat - q1.lat);
+q2_cartesian_exact = xyz_enu(:,2)*(1/0.000621371)  % meters
+q2_cartesian_linear = [x_meters; y_meters; 0]
+linear_approx_error = norm(q2_cartesian_exact-q2_cartesian_linear)
+
 figure;
 hold on; grid on; axis equal;
 plot3(xyz_enu(1,:),xyz_enu(2,:),xyz_enu(3,:),'.-','MarkerSize',20,'LineWidth',2,'Color',[0.8 0 0.8]);
@@ -94,7 +114,6 @@ xlabel('\bfEast');
 ylabel('\bfNorth');
 zlabel('\bfUp');
 legend('ENU','Geodesic');
-
 
 %% conversion from LAT/LON to ECEF backed out of code from https://github.com/Stellacore/peridetic
 function xyz = latlon_to_xyz_ecef(lat_deg,lon_deg,alt_m)

@@ -1,5 +1,6 @@
-% numerical optimization to find catenary
-% based on shortest time between points in gravity with fixed energy
+% numerical optimization to solve brachistochrone problem
+% finding cycloid that gives shortest time between points in gravity
+% with fixed energy
 
 % restart
 close all; clear; clc;

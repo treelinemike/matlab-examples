@@ -105,7 +105,7 @@ while(~done_flag)
         X(6) = vaf_cart(2);
         X(7) = vbf_cart(1);
         X(8) = vbf_cart(2);
-
+        
         mode = 1;
 %         done_flag = true;
     elseif( mode == 1  && (X(2) < 0 || X(4) < 0))

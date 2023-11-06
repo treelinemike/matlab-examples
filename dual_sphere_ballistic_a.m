@@ -44,15 +44,15 @@ Icm  = [Ixx 0 0; 0 Iyy 0; 0 0 Izz];    % inertia matrix taken at CM about princi
 % assemble into parameter structure
 params.Icm = Icm;
 params.g = 1.62;                       % [m/s^2]
-params.m1 = m;                         % [kg] assuming equal mass spheres for now...
+params.m1 = 2*m;                         % [kg] assuming equal mass spheres for now...
 params.m2 = m;                         % [kg] assuming equal mass spheres for now...
-params.sph_locs = [r 0 0; -r 0 0];     % [m] rigid body sphere locations - relative to point "p" on cable
+params.sph_locs = [2*r 0 0; -r 0 0];     % [m] rigid body sphere locations - relative to point "p" on cable
 params.doneflag(1) = false;            % flag to stop simulating
 params.doneflag(2) = false;            % flag to stop simulating
 
 % DEFINE INITAL CONDITIONS
 R0 = eye(3);                           % initial rotation matrix
-omega0 = [0 -1.45 0];                   % [rad/s] initial rigid body angular velocity
+omega0 = [0 -1.45 0];                  % [rad/s] initial rigid body angular velocity
 tctr0 = [0 0 0];                       % [m] initial position of point "p" on cable in inertial frame
 vctr0 = 15*[cos(pi/4) 0 sin(pi/4)];    % [m/s] initial linear velocity at point "p" on cable
 
@@ -248,8 +248,8 @@ plot3(data(19,:),data(20,:),data(21,:),'--','LineWidth',1.0,'Color',[0.8 0 0]);
 
 % plot cord and spheres
 ph.cord = plot3([nan nan],[nan nan],[nan nan],'.-','LineWidth',2,'Color',[0 0 0]);
-ph.sph1 = plot3(nan,nan,nan,'o','MarkerSize',10,'MarkerFaceColor',[0.8 0 0],'MarkerEdgeColor','none');
-ph.sph2 = plot3(nan,nan,nan,'o','MarkerSize',10,'MarkerFaceColor',[0.8 0 0],'MarkerEdgeColor','none');
+ph.sph1 = plot3(nan,nan,nan,'o','MarkerSize',10,'MarkerFaceColor',[0 0.8 0.8],'MarkerEdgeColor','none');
+ph.sph2 = plot3(nan,nan,nan,'o','MarkerSize',10,'MarkerFaceColor',[0.8 0.8 0],'MarkerEdgeColor','none');
 
 % plot triad and grab handles for blitting
 ph.XYZ = plot3(triad_XYZ(:,1),triad_XYZ(:,2),triad_XYZ(:,3),'LineWidth',4,'Color','k');
